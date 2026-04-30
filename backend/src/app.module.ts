@@ -11,6 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UsersModule } from './users/users.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     NotificationsModule,
     AuthModule,
     UsersModule,
+    SettingsModule,
     BetsModule,
     TransactionsModule,
     DashboardModule,

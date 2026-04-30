@@ -7,6 +7,7 @@ import {
   createUserAction,
   deleteBetAction,
   deleteUserAction,
+  setResultsUrlAction,
   updateBetAction,
   updateBetStatusAction,
   updateUserAction,
@@ -39,6 +40,8 @@ type UserRow = {
   createdAt: string;
 };
 
+type ResultsUrlResponse = { url: string };
+
 function eur(cents: number) {
   return `${(cents / 100).toFixed(2)}€`;
 }
@@ -61,6 +64,7 @@ export default async function DashboardPage({
     apiFetch<Summary>('/dashboard/summary'),
     tab === 'bets' ? apiFetch<Bet[]>('/bets') : Promise.resolve(null),
     tab === 'users' ? apiFetch<UserRow[]>('/users') : Promise.resolve(null),
+    apiFetch<ResultsUrlResponse>('/settings/resultsUrl'),
   ]);
 
   const summaryResult = results[0];
@@ -86,6 +90,8 @@ export default async function DashboardPage({
   const summary = summaryResult.value;
   const bets = results[1].status === 'fulfilled' ? results[1].value : null;
   const users = results[2].status === 'fulfilled' ? results[2].value : null;
+  const resultsUrl =
+    results[3].status === 'fulfilled' ? results[3].value.url : 'https://www.loteriasyapuestas.es';
   const tabLoadError =
     (tab === 'bets' && results[1].status === 'rejected') ||
     (tab === 'users' && results[2].status === 'rejected');
@@ -119,6 +125,49 @@ export default async function DashboardPage({
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
           <div className="text-sm text-slate-300">Usuarios</div>
           <div className="mt-2 text-3xl font-semibold">{summary.users.length}</div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="text-sm text-slate-200">
+          <span className="font-medium">Resultados</span>
+          <span className="ml-2 text-slate-400">Comprueba el resultado en la web configurada.</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={resultsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-white"
+          >
+            COMPROBAR RESULTADO
+          </a>
+          {role === 'admin' ? (
+            <details className="group">
+              <summary className="list-none">
+                <span className="cursor-pointer rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-900">
+                  Cambiar URL
+                </span>
+              </summary>
+              <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <form action={setResultsUrlAction} className="flex flex-wrap items-center gap-2">
+                  <input
+                    name="url"
+                    type="url"
+                    required
+                    defaultValue={resultsUrl}
+                    className="w-[28rem] max-w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-slate-100"
+                  />
+                  <button className="rounded-lg border border-slate-700 px-2 py-1 hover:bg-slate-900">
+                    Guardar
+                  </button>
+                </form>
+                <div className="mt-2 text-xs text-slate-500">
+                  Debe incluir protocolo (por ejemplo: https://...).
+                </div>
+              </div>
+            </details>
+          ) : null}
         </div>
       </div>
 

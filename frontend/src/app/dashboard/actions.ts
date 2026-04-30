@@ -156,3 +156,17 @@ export async function deleteUserAction(formData: FormData) {
   revalidatePath('/dashboard');
 }
 
+export async function setResultsUrlAction(formData: FormData) {
+  const url = String(formData.get('url') ?? '').trim();
+  if (!url) throw new Error('URL requerida');
+
+  const res = await fetch(`${backend()}/settings/resultsUrl`, {
+    method: 'PUT',
+    headers: { ...(await authHeader()), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(await res.text().catch(() => 'Error guardando URL'));
+  revalidatePath('/dashboard');
+}
+

@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      PORT: 3001
+      DATABASE_URL: file:/app/data/dev.db
+      JWT_SECRET: dev-secret-change-me
+      JWT_EXPIRES_IN: 7d
+      AUTH_EMAIL_WHITELIST: admin@pena.local,persona01@pena.local,persona02@pena.local,persona03@pena.local,persona04@pena.local,persona05@pena.local,persona06@pena.local,persona07@pena.local,persona08@pena.local,persona09@pena.local,persona10@pena.local,persona11@pena.local,persona12@pena.local,persona13@pena.local,persona14@pena.local,persona15@pena.local,persona16@pena.local,persona17@pena.local,persona18@pena.local
+      CORS_ORIGIN: http://localhost:3000
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      EMAIL_HOST: ${EMAIL_HOST:-}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_SECURE: ${EMAIL_SECURE:-false}
+      EMAIL_USER: ${EMAIL_USER:-}
+      EMAIL_PASS: ${EMAIL_PASS:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      WEEKLY_EMAIL_TO: ${WEEKLY_EMAIL_TO:-}
+      RUN_SEED: "true"
+    ports:
+      - "3001:3001"
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_data:/app/data
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      BACKEND_URL: http://backend:3001/api
+      NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  backend_uploads:
+  backend_data:
+

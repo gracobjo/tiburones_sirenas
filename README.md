@@ -1,5 +1,7 @@
 ## Peña de apuestas (full-stack)
 
+Manual de usuario: ver `MANUAL_USUARIO.md`.
+
 Stack:
 - **Backend**: NestJS + Prisma + PostgreSQL + JWT + cron (`@nestjs/schedule`)
 - **Frontend**: Next.js (App Router) + TailwindCSS (v3) + Server Actions

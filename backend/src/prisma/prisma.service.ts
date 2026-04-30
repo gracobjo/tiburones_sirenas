@@ -8,8 +8,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 
   async enableShutdownHooks(app: INestApplication) {
-    this.$on('beforeExit', async () => {
-      await app.close();
+    // Prisma 6 con engine "library" no expone el evento `beforeExit` en tipos.
+    // Cerramos la app cuando Node vaya a salir.
+    process.on('beforeExit', () => {
+      void app.close();
     });
   }
 }

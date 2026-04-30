@@ -26,19 +26,20 @@ export async function loginAction(formData: FormData) {
   }
 
   const data = (await res.json()) as LoginResponse;
-  cookies().set('auth_token', data.accessToken, {
+  const cookieStore = await cookies();
+  cookieStore.set('auth_token', data.accessToken, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
   });
-  cookies().set('user_role', data.user.role, {
+  cookieStore.set('user_role', data.user.role, {
     httpOnly: false,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
   });
-  cookies().set('user_email', data.user.email, {
+  cookieStore.set('user_email', data.user.email, {
     httpOnly: false,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -49,9 +50,10 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function logoutAction() {
-  cookies().delete('auth_token');
-  cookies().delete('user_role');
-  cookies().delete('user_email');
+  const cookieStore = await cookies();
+  cookieStore.delete('auth_token');
+  cookieStore.delete('user_role');
+  cookieStore.delete('user_email');
   redirect('/login');
 }
 

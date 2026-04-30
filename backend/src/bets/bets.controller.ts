@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Patch,
   Post,
@@ -44,6 +45,11 @@ export class BetsController {
     return this.bets.list();
   }
 
+  @Get(':id')
+  async get(@Param('id') id: string) {
+    return this.bets.getById(id);
+  }
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.admin)
@@ -63,6 +69,13 @@ export class BetsController {
   @Roles(Role.admin)
   async update(@Param('id') id: string, @Body() dto: UpdateBetDto) {
     return this.bets.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.admin)
+  async remove(@Param('id') id: string) {
+    return this.bets.remove(id);
   }
 }
 

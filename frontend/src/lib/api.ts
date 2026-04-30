@@ -15,7 +15,8 @@ export async function apiFetch<T>(
   init?: RequestInit & { auth?: boolean },
 ): Promise<T> {
   const url = `${backendBaseUrl()}${path.startsWith('/') ? '' : '/'}${path}`;
-  const token = cookies().get('auth_token')?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get('auth_token')?.value;
 
   const headers = new Headers(init?.headers);
   if (init?.auth !== false && token) {

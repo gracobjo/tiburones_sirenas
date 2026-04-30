@@ -7,6 +7,12 @@ function eurosToCents(eur: number) {
 }
 
 async function main() {
+  // SQLite: `createMany.skipDuplicates` no está soportado como en Postgres.
+  // Para que el seed sea idempotente, limpiamos tablas y reinsertamos datos de ejemplo.
+  await prisma.bet.deleteMany();
+  await prisma.transaction.deleteMany();
+  await prisma.user.deleteMany();
+
   const users = [
     { email: 'admin@pena.local', name: 'Admin Peña', role: Role.admin },
     { email: 'persona01@pena.local', name: 'Persona 01', role: Role.user },
@@ -29,7 +35,7 @@ async function main() {
     { email: 'persona18@pena.local', name: 'Persona 18', role: Role.user },
   ];
 
-  await prisma.user.createMany({ data: users, skipDuplicates: true });
+  await prisma.user.createMany({ data: users });
 
   // Fondo inicial (ejemplo): 500€ depositados, 20€ apostados, 120€ premio
   await prisma.transaction.createMany({
@@ -73,7 +79,6 @@ async function main() {
         validatedAt: new Date(),
       },
     ],
-    skipDuplicates: true,
   });
 }
 

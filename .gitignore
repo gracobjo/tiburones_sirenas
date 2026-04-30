@@ -8,3 +8,7 @@
 **/uploads
 .DS_Store
 
+# Local dev artifacts
+**/*.db
+backend/.prisma-engines/
+

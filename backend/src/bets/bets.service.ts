@@ -18,6 +18,12 @@ export class BetsService {
     });
   }
 
+  async getById(id: string) {
+    const bet = await this.prisma.bet.findUnique({ where: { id } });
+    if (!bet) throw new NotFoundException('Bet not found');
+    return bet;
+  }
+
   async create(input: CreateBetDto & { storedFileUrl?: string | null }) {
     const date = input.date ? new Date(input.date) : new Date();
     const fileUrl = input.storedFileUrl ?? input.fileUrl ?? null;
@@ -51,17 +57,65 @@ export class BetsService {
     const existing = await this.prisma.bet.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Bet not found');
 
+    const nextAmount = typeof dto.amount === 'number' ? dto.amount : existing.amount;
+    const amountDiff = nextAmount - existing.amount;
+    const nextBetCode = dto.betCode?.trim() || existing.betCode;
+
     const validatedAt =
       dto.status && dto.status !== BetStatus.pending ? new Date() : undefined;
 
-    return this.prisma.bet.update({
+    const updated = await this.prisma.bet.update({
       where: { id },
       data: {
+        betCode: dto.betCode ? dto.betCode.trim() : undefined,
+        date: dto.date ? new Date(dto.date) : undefined,
+        amount: dto.amount,
         status: dto.status,
         prizeAmount: dto.prizeAmount,
         validatedAt,
       },
     });
+
+    // Mantener balance consistente: al crear una bet se registra un TransactionType.bet.
+    // Si cambia el importe, registramos el delta como bet (si sube) o adjustment (si baja).
+    if (amountDiff !== 0) {
+      if (amountDiff > 0) {
+        await this.prisma.transaction.create({
+          data: {
+            type: TransactionType.bet,
+            amount: amountDiff,
+            description: `Ajuste importe apuesta ${nextBetCode}`,
+          },
+        });
+      } else {
+        await this.prisma.transaction.create({
+          data: {
+            type: TransactionType.adjustment,
+            amount: -amountDiff,
+            description: `Reembolso ajuste apuesta ${nextBetCode}`,
+          },
+        });
+      }
+    }
+
+    return updated;
+  }
+
+  async remove(id: string) {
+    const existing = await this.prisma.bet.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Bet not found');
+
+    // No tenemos FK a la transacción de tipo "bet". Revertimos el impacto con un adjustment.
+    await this.prisma.transaction.create({
+      data: {
+        type: TransactionType.adjustment,
+        amount: existing.amount,
+        description: `Reverso borrado apuesta ${existing.betCode}`,
+      },
+    });
+
+    await this.prisma.bet.delete({ where: { id } });
+    return { ok: true };
   }
 }
 
